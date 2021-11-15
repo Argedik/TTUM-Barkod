@@ -1,6 +1,6 @@
-import 'package:barkoduygulamasi/print.dart';
+/*
+import 'package:barkoduygulamasi/print_eski.dart';
 import 'package:flutter/material.dart';
-import 'package:thermal_printer_flutter/print.dart';
 
 class Home extends StatelessWidget {
   //
@@ -87,3 +87,4 @@ class Home extends StatelessWidget {
     );
   }
 }
+*/

@@ -1,4 +1,5 @@
 import 'package:barkoduygulamasi/barkod_view.dart';
+import 'package:barkoduygulamasi/deneme2.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +28,7 @@ class MyApp extends StatelessWidget {
               return const Center(
                   child: Text("Beklenilmeyen bir hata oluştu."));
             } else if (snapshot.hasData) {
-              return const Barkod();
+              return HomePage();
               // return const login();
             } else {
               return const Center(

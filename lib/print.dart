@@ -1,61 +1,64 @@
-import 'dart:typed_data';
-import 'package:flutter/material.dart' hide Image;
-import 'package:esc_pos_bluetooth/esc_pos_bluetooth.dart';
-import 'package:esc_pos_utils/esc_pos_utils.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bluetooth_basic/flutter_bluetooth_basic.dart';
-import 'dart:io' show Platform;
-import 'package:image/image.dart';
+import 'package:bluetooth_print/bluetooth_print.dart';
+import 'package:bluetooth_print/bluetooth_print_model.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class Print extends StatefulWidget {
+class PrintPage extends StatefulWidget {
   final List<Map<String, dynamic>> data;
-  Print(this.data);
+  PrintPage(this.data);
+
   @override
-  _PrintState createState() => _PrintState();
+  _PrintPageState createState() => _PrintPageState();
 }
 
-class _PrintState extends State<Print> {
-  PrinterBluetoothManager _printerManager = PrinterBluetoothManager();
-  List<PrinterBluetooth> _devices = [];
-  late String _devicesMsg;
-  BluetoothManager bluetoothManager = BluetoothManager.instance;
+class _PrintPageState extends State<PrintPage> {
+  BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
+  List<BluetoothDevice> _devices = [];
+  String _devicesMsg = "";
+  final f = NumberFormat("\$###,###.00", "en_US");
 
   @override
   void initState() {
-    if (Platform.isAndroid) {
-      bluetoothManager.state.listen((val) {
-        print('state = $val');
-        if (!mounted) return;
-        if (val == 12) {
-          print('on');
-          initPrinter();
-        } else if (val == 10) {
-          print('off');
-          setState(() => _devicesMsg = 'Bluetooth Disconnect!');
-        }
-      });
-    } else {
-      initPrinter();
-    }
-
     super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((_) => {initPrinter()});
+  }
+
+  Future<void> initPrinter() async {
+    bluetoothPrint.startScan(timeout: Duration(seconds: 2));
+
+    if (!mounted) return;
+    bluetoothPrint.scanResults.listen(
+      (val) {
+        if (!mounted) return;
+        setState(() => {_devices = val});
+        if (_devices.isEmpty)
+          setState(() {
+            _devicesMsg = "No Devices";
+          });
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Print'),
+        title: Text('Select Printer'),
+        backgroundColor: Colors.redAccent,
       ),
       body: _devices.isEmpty
-          ? Center(child: Text(_devicesMsg ?? ''))
+          ? Center(
+              child: Text("yok"),
+            )
           : ListView.builder(
               itemCount: _devices.length,
               itemBuilder: (c, i) {
                 return ListTile(
                   leading: Icon(Icons.print),
-                  title: Text(_devices[i].name),
-                  subtitle: Text(_devices[i].address),
+                  title:
+                      Text("${_devices.isNotEmpty ? _devices[1].name : "yok"}"),
+                  subtitle: Text(
+                      "${_devices.isNotEmpty ? _devices[1].address : "yok"}"),
                   onTap: () {
                     _startPrint(_devices[i]);
                   },
@@ -65,72 +68,46 @@ class _PrintState extends State<Print> {
     );
   }
 
-  void initPrinter() {
-    _printerManager.startScan(Duration(seconds: 2));
-    _printerManager.scanResults.listen((val) {
-      if (!mounted) return;
-      setState(() => _devices = val);
-      if (_devices.isEmpty) setState(() => _devicesMsg = 'No Devices');
-    });
-  }
+  Future<void> _startPrint(BluetoothDevice device) async {
+    if (device != null && device.address != null) {
+      await bluetoothPrint.connect(device);
 
-  Future<void> _startPrint(PrinterBluetooth printer) async {
-    _printerManager.selectPrinter(printer);
-    final result =
-        await _printerManager.printTicket(await _ticket(PaperSize.mm80));
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        content: Text(result.msg),
-      ),
-    );
-  }
+      Map<String, dynamic> config = Map();
+      List<LineText> list = [];
 
-  Future<Ticket> _ticket(PaperSize paper) async {
-    final ticket = Ticket(paper);
-    int total = 0;
+      list.add(
+        LineText(
+          type: LineText.TYPE_TEXT,
+          content: "Grocery App",
+          weight: 2,
+          width: 2,
+          height: 2,
+          align: LineText.ALIGN_CENTER,
+          linefeed: 1,
+        ),
+      );
 
-    // Image assets
-    final ByteData data = await rootBundle.load('assets/store.png');
-    final Uint8List bytes = data.buffer.asUint8List();
-    final Image image = decodeImage(bytes);
-    ticket.image(image);
-    ticket.text(
-      'TOKO KU',
-      styles: PosStyles(
-          align: PosAlign.center,
-          height: PosTextSize.size2,
-          width: PosTextSize.size2),
-      linesAfter: 1,
-    );
+      for (var i = 0; i < widget.data.length; i++) {
+        list.add(
+          LineText(
+            type: LineText.TYPE_TEXT,
+            content: widget.data[i]['title'],
+            weight: 0,
+            align: LineText.ALIGN_LEFT,
+            linefeed: 1,
+          ),
+        );
 
-    for (var i = 0; i < widget.data.length; i++) {
-      total += widget.data[i]['total_price'];
-      ticket.text(widget.data[i]['title']);
-      ticket.row([
-        PosColumn(
-            text: '${widget.data[i]['price']} x ${widget.data[i]['qty']}',
-            width: 6),
-        PosColumn(text: 'Rp ${widget.data[i]['total_price']}', width: 6),
-      ]);
+        list.add(
+          LineText(
+            type: LineText.TYPE_TEXT,
+            content:
+                "${f.format(this.widget.data[i]['price'])} x ${this.widget.data[i]['qty']}",
+            align: LineText.ALIGN_LEFT,
+            linefeed: 1,
+          ),
+        );
+      }
     }
-
-    ticket.feed(1);
-    ticket.row([
-      PosColumn(text: 'Total', width: 6, styles: PosStyles(bold: true)),
-      PosColumn(text: 'Rp $total', width: 6, styles: PosStyles(bold: true)),
-    ]);
-    ticket.feed(2);
-    ticket.text('Thank You',
-        styles: PosStyles(align: PosAlign.center, bold: true));
-    ticket.cut();
-
-    return ticket;
-  }
-
-  @override
-  void dispose() {
-    _printerManager.stopScan();
-    super.dispose();
   }
 }
