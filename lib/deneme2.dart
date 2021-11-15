@@ -4,14 +4,14 @@ import 'package:intl/intl.dart';
 
 class HomePage extends StatelessWidget {
   final List<Map<String, dynamic>> data = [
-    {'title': 'Cadbury Dairy Milk', 'price': 15, 'qty': 2},
-    {'title': 'Parle-G Gluco Biscut', 'price': 5, 'qty': 5},
-    {'title': 'Fresh Onion - 1KG', 'price': 20, 'qty': 1},
-    {'title': 'Fresh Sweet Lime', 'price': 20, 'qty': 5},
-    {'title': 'Maggi', 'price': 10, 'qty': 5},
+    {'title': 'Ülker Çikolata', 'price': 5, 'qty': 2},
+    {'title': 'Çokoprens 300G', 'price': 7, 'qty': 5},
+    {'title': 'Soğan Kuru Dökme', 'price': 2, 'qty': 2},
+    {'title': 'Limon', 'price': 8, 'qty': 5},
+    {'title': "Nuh'un Ankara Burgu Makarna 500G", 'price': 5, 'qty': 5},
   ];
 
-  final f = NumberFormat("\$###,###.00", "en_US");
+  final f = NumberFormat("\TL ###,###.00", "en_US");
 
   @override
   Widget build(BuildContext context) {
