@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
     {'title': "Nuh'un Ankara Burgu Makarna 500G", 'price': 5, 'qty': 5},
   ];
 
-  final f = NumberFormat("\TL ###,###.00", "en_US");
+  final f = NumberFormat("\$ ###,###.00", "en_US");
 
   @override
   Widget build(BuildContext context) {
