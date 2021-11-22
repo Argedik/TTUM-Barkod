@@ -1,4 +1,4 @@
-import 'package:barkoduygulamasi/print.dart';
+import 'package:barkoduygulamasi/views/printer_connection/print.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -8,7 +8,7 @@ class HomePage extends StatelessWidget {
     {'title': 'Çokoprens 300G', 'price': 7, 'qty': 5},
     {'title': 'Soğan Kuru Dökme', 'price': 2, 'qty': 2},
     {'title': 'Limon', 'price': 8, 'qty': 5},
-    {'title': "Nuh'un Ankara Burgu Makarna 500G", 'price': 5, 'qty': 5},
+    // {'title': "Nuh'un Ankara Burgu Makarna 500G", 'price': 5, 'qty': 5},
   ];
 
   final f = NumberFormat("\$ ###,###.00", "en_US");

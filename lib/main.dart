@@ -1,5 +1,7 @@
 
-import 'package:barkoduygulamasi/deneme2.dart';
+import 'package:barkoduygulamasi/views/barcode_settings/barcode_scan.dart';
+import 'package:barkoduygulamasi/views/printer_connection/homepage.dart';
+import 'package:barkoduygulamasi/views/printer_connection/print.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
